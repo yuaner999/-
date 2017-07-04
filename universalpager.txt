@@ -1,0 +1,91 @@
+function refreshpage(selector,searchdata,datalength,rowsperpage,pageitemcount,pagenum,location,loaddataprepage){
+    universalpager(selector,searchdata,datalength,rowsperpage,pageitemcount,pagenum,location, loaddataprepage,function(nummber){
+        pagenum = nummber;
+        refreshpage(selector,searchdata,datalength,rowsperpage,pageitemcount,pagenum,location,loaddataprepage);
+    });
+}
+function universalpager(selector,searchdata,totalrows,rowsperpage,pageitemcount,curpagenumber,location,loaddataprepage,clickcallback){
+    //选择器，搜索词，总行数，每页行数，每页页码数，当前页，选中项显示位置，加载显示内容函数，回调函数
+    //选择器置空
+    $(selector).html('');
+    //当前页=1
+    if(curpagenumber==null) curpagenumber = 1;
+    //页数，向上取整
+    var pagecount = Math.ceil(totalrows/rowsperpage);
+    //当前页>页数
+    if(curpagenumber>pagecount) return;
+    var pagenumberstart = 1;
+    //开始页数、结束页数
+    if(curpagenumber>location) pagenumberstart = curpagenumber-location;
+    var pagenumberend = pagenumberstart + pageitemcount - 1 ;
+    //生成页码
+    var items = [];
+    for(var i = pagenumberstart;i<=pagenumberend&&i<=pagecount;i++){
+        items.push({
+            num:i,
+            click:function(){
+                var num = Number($(this).attr("num"));
+                if(clickcallback) clickcallback(num);
+                pagenum = num;
+                loaddataprepage(searchdata,pagenum);
+            }
+        })
+    }
+    //输出
+    for(var i=0;i<items.length;i++){
+        var item = items[i];
+        if(pagenumberstart+i==curpagenumber){
+            var pageitem = createselectedpageitem(item);
+            $(selector).append(pageitem);
+        }else{
+            var pageitem = createpageitem(item);
+            $(selector).append(pageitem);
+        }
+    }
+    createprevpage(".btnPages .prev",searchdata,curpagenumber,loaddataprepage,clickcallback);
+    createnextpage(".btnPages .next",searchdata,pagecount,curpagenumber,loaddataprepage,clickcallback);
+}
+function createpageitem(item){
+    var elem = $('<li></li>');
+    elem.on("click",item.click);
+    elem.attr("num",item.num);
+    elem.html(item.num);
+    return elem[0];
+}
+function createselectedpageitem(item){
+    var elem = $('<li class="active"></li>');
+    elem.on("click",item.click);
+    elem.attr("num",item.num);
+    elem.html(item.num);
+    return elem[0];
+}
+function createprevpage(selector,searchdata,curpagenumber,loaddataprepage,clickcallback){
+    var elem = $(selector);
+    elem.off("click");
+    elem.on("click",function(){
+        if(curpagenumber>1){
+            curpagenumber--;
+        }else{
+            return elem[0];
+        }
+        if(clickcallback) {clickcallback(curpagenumber)}
+        pagenum = curpagenumber;
+        loaddataprepage(searchdata,pagenum);
+    });
+    return elem[0];
+}
+function createnextpage(selector,searchdata,pagecount,curpagenumber,loaddataprepage,clickcallback){
+    var elem = $(selector);
+    elem.off("click");
+    elem.on("click",function(){
+        if(curpagenumber<pagecount){
+            curpagenumber++;
+        } else{
+            return elem[0];
+        }
+        if(clickcallback) {clickcallback(curpagenumber)}
+        pagenum=curpagenumber;
+        loaddataprepage(searchdata,pagenum);
+    });
+    return elem[0];
+} 
